@@ -163,6 +163,17 @@
             transition: all 0.15s ease;
         }
 
+        /* Larger touch target for mobile - invisible padding */
+        .btn-no::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            z-index: -1;
+        }
+
         .btn-no {
             padding: 16px 40px;
             font-family: 'Cormorant Garamond', serif;
@@ -176,6 +187,9 @@
             user-select: none;
             letter-spacing: 0.5px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+            position: relative;
         }
 
         /* Counter text */
@@ -799,13 +813,14 @@
 
     // Generate a random offset that doesn't overlap the YES button
     function safeRandomOffset() {
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        const padding = 16; // keep btn away from screen edges
+        // Use visualViewport for iOS, fallback to documentElement for better mobile support
+        const vw = (window.visualViewport?.width || document.documentElement.clientWidth || window.innerWidth);
+        const vh = (window.visualViewport?.height || document.documentElement.clientHeight || window.innerHeight);
+        const padding = 40; // Increased padding for mobile safety
         const noW = btnNoBaseRect.width;
         const noH = btnNoBaseRect.height;
         const yesRect = btnYes.getBoundingClientRect();
-        const margin = 30;
+        const margin = 40; // Increased margin to avoid YES button
 
         // Max offsets that keep the button fully inside the viewport
         const minX = -(btnNoBaseRect.left - padding);
@@ -813,10 +828,17 @@
         const minY = -(btnNoBaseRect.top - padding);
         const maxY = vh - btnNoBaseRect.bottom - padding;
 
+        // Ensure we have valid ranges
+        const validMaxX = Math.max(minX, maxX);
+        const validMinX = Math.min(minX, maxX);
+        const validMaxY = Math.max(minY, maxY);
+        const validMinY = Math.min(minY, maxY);
+
         let x, y, attempts = 0;
         do {
-            x = minX + Math.random() * (maxX - minX);
-            y = minY + Math.random() * (maxY - minY);
+            x = validMinX + Math.random() * (validMaxX - validMinX);
+            y = validMinY + Math.random() * (validMaxY - validMinY);
+
             // Check overlap with YES button
             const futureLeft = btnNoBaseRect.left + x;
             const futureRight = futureLeft + noW;
@@ -829,6 +851,11 @@
             if (!overlaps) break;
             attempts++;
         } while (attempts < 30);
+
+        // Clamp values to ensure button stays in viewport
+        x = Math.max(validMinX, Math.min(validMaxX, x));
+        y = Math.max(validMinY, Math.min(validMaxY, y));
+
         return { x, y };
     }
 
@@ -864,14 +891,35 @@
 
     // Mouse/touch approach detection
     let counterTimer = null;
+    let lastInteractionTime = 0;
     function handleNoInteraction(e) {
         e.preventDefault();
+        e.stopPropagation();
+
+        // Prevent rapid-fire events (debounce for 100ms)
+        const now = Date.now();
+        if (now - lastInteractionTime < 100) return;
+        lastInteractionTime = now;
+
         noAttempts++;
 
         btnNoWrapper.classList.add('escaping');
 
         const behavior = escapeBehaviors[Math.floor(Math.random() * escapeBehaviors.length)];
         behavior();
+
+        // Verify button is still in viewport after move
+        setTimeout(() => {
+            const rect = btnNoWrapper.getBoundingClientRect();
+            const vw = (window.visualViewport?.width || document.documentElement.clientWidth || window.innerWidth);
+            const vh = (window.visualViewport?.height || document.documentElement.clientHeight || window.innerHeight);
+
+            // If button is out of bounds, move it back in
+            if (rect.left < 0 || rect.right > vw || rect.top < 0 || rect.bottom > vh) {
+                const { x, y } = safeRandomOffset();
+                btnNoWrapper.style.transform = `translate(${x}px, ${y}px)`;
+            }
+        }, 20);
 
         // Change button text sometimes
         if (noAttempts >= 3) {
@@ -887,14 +935,61 @@
         noCounter.classList.add('visible');
         counterTimer = setTimeout(() => noCounter.classList.remove('visible'), 4000);
 
-
         // Always reset opacity to full so button never disappears
         btnNoWrapper.style.opacity = '1';
     }
 
+    // Handle both mouse and touch events for cross-device compatibility
     btnNo.addEventListener('mouseenter', handleNoInteraction);
     btnNo.addEventListener('touchstart', handleNoInteraction, { passive: false });
+    btnNo.addEventListener('touchmove', handleNoInteraction, { passive: false });
     btnNo.addEventListener('click', handleNoInteraction);
+
+    // Global touch detection for mobile - detect proximity
+    let isDetectingTouch = false;
+    function checkTouchProximity(e) {
+        if (!positioned || !btnNoBaseRect) return;
+
+        const touch = e.touches[0];
+        if (!touch) return;
+
+        const btnRect = btnNoWrapper.getBoundingClientRect();
+        const touchX = touch.clientX;
+        const touchY = touch.clientY;
+
+        // Calculate distance from touch to button center
+        const btnCenterX = btnRect.left + btnRect.width / 2;
+        const btnCenterY = btnRect.top + btnRect.height / 2;
+        const distance = Math.sqrt(
+            Math.pow(touchX - btnCenterX, 2) +
+            Math.pow(touchY - btnCenterY, 2)
+        );
+
+        // If touch is within 80px of button, trigger escape
+        const proximityThreshold = 80;
+        if (distance < proximityThreshold && !isDetectingTouch) {
+            isDetectingTouch = true;
+            handleNoInteraction(e);
+            setTimeout(() => { isDetectingTouch = false; }, 200);
+        }
+    }
+
+    document.addEventListener('touchstart', checkTouchProximity, { passive: false });
+    document.addEventListener('touchmove', checkTouchProximity, { passive: false });
+
+    // Recalculate position on viewport changes (orientation, resize, etc.)
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', () => {
+            if (positioned) {
+                setTimeout(positionNoWrapper, 100);
+            }
+        });
+    }
+    window.addEventListener('resize', () => {
+        if (positioned) {
+            setTimeout(positionNoWrapper, 100);
+        }
+    });
 
     // ═══ YES HANDLER ═══
     function handleYes() {
