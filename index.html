@@ -120,20 +120,18 @@
         /* BUTTONS AREA */
         .buttons-area {
             display: flex;
-            gap: 24px;
             align-items: center;
             justify-content: center;
             position: relative;
             min-height: 80px;
-            min-width: 340px;
             opacity: 0;
             animation: fadeUp 0.8s ease 1s forwards;
         }
 
         .btn-yes {
-            padding: 16px 48px;
+            padding: 14px 40px;
             font-family: 'Cormorant Garamond', serif;
-            font-size: 1.3rem;
+            font-size: 1.15rem;
             font-weight: 600;
             color: white;
             background: linear-gradient(135deg, var(--rose) 0%, var(--wine) 100%);
@@ -145,10 +143,24 @@
             position: relative;
             z-index: 2;
             letter-spacing: 0.5px;
+            white-space: nowrap;
         }
         .btn-yes:hover {
             transform: scale(1.08);
             box-shadow: 0 6px 30px rgba(181,70,90,0.45);
+        }
+
+        .btn-no-wrapper {
+            position: absolute;
+            z-index: 3;
+            transition: all 0.25s ease;
+            opacity: 0;
+            animation: fadeUp 0.8s ease 1s forwards;
+            /* Positioned via JS after layout */
+        }
+
+        .btn-no-wrapper.escaping {
+            transition: all 0.15s ease;
         }
 
         .btn-no {
@@ -156,20 +168,14 @@
             font-family: 'Cormorant Garamond', serif;
             font-size: 1.3rem;
             font-weight: 600;
-            color: #aaa;
-            background: transparent;
+            color: #888;
+            background: var(--cream);
             border: 2px solid #ddd;
             border-radius: 50px;
             cursor: pointer;
-            transition: all 0.25s ease;
-            position: relative;
-            z-index: 2;
             user-select: none;
             letter-spacing: 0.5px;
-        }
-
-        .btn-no.escaping {
-            transition: all 0.15s ease;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
         }
 
         /* Counter text */
@@ -523,6 +529,8 @@
     </div>
     <div class="buttons-area" id="buttonsArea">
         <button class="btn-yes" id="btnYes" onclick="handleYes()">¡Sí, quiero! 💕</button>
+    </div>
+    <div class="btn-no-wrapper" id="btnNoWrapper">
         <button class="btn-no" id="btnNo">No, gracias</button>
         <div class="no-counter" id="noCounter"></div>
     </div>
@@ -590,7 +598,7 @@
             <div class="activity">
                 <div class="activity-icon">🌙</div>
                 <div class="activity-content">
-                    <div class="activity-name">Cena tapeo en calles con encanto</div>
+                    <div class="activity-name">Cena en calles con encanto</div>
                     <div class="activity-desc">Callejear y dejarnos llevar por los olores de la cocina andaluza</div>
                 </div>
             </div>
@@ -617,7 +625,7 @@
                 <div class="activity-icon">⛪</div>
                 <div class="activity-content">
                     <div class="activity-name">Catedral + subida a la Giralda</div>
-                    <div class="activity-desc">Toda Sevilla a tus pies desde lo más alto. Sin escaleras, solo rampas 😉</div>
+                    <div class="activity-desc">Toda Sevilla a tus pies desde lo más alto 😉</div>
                 </div>
             </div>
             <div class="activity">
@@ -718,7 +726,7 @@
                 <div class="activity-icon">🚄</div>
                 <div class="activity-content">
                     <div class="activity-name">Tren de vuelta a Madrid</div>
-                    <div class="activity-desc">Volvemos a casa con el corazón lleno y miles de recuerdos</div>
+                    <div class="activity-desc">Volvemos a casa con el corazón lleno y miles de recuerdos 📸❤️‍🔥</div>
                 </div>
                 <div class="activity-time">17:00</div>
             </div>
@@ -752,9 +760,9 @@
 
     // ═══ THE IMPOSSIBLE "NO" BUTTON ═══
     const btnNo = document.getElementById('btnNo');
+    const btnNoWrapper = document.getElementById('btnNoWrapper');
     const btnYes = document.getElementById('btnYes');
     const noCounter = document.getElementById('noCounter');
-    const buttonsArea = document.getElementById('buttonsArea');
 
     let noAttempts = 0;
     const noMessages = [
@@ -770,80 +778,118 @@
         "¿Todavía intentándolo? 🤭",
     ];
 
+    // Position the No wrapper to the right of the Yes button, then capture base rect.
+    // We wait for the fadeUp animation to finish (1s delay + 0.8s = 1.8s) so rects are stable.
+    let btnNoBaseRect = null;
+    let positioned = false;
+    function positionNoWrapper() {
+        const yesRect = btnYes.getBoundingClientRect();
+        const screenRect = document.getElementById('question-screen').getBoundingClientRect();
+        // Place it ~24px to the right of the Yes button, vertically centered with it
+        const left = (yesRect.right - screenRect.left) + 24;
+        const top = (yesRect.top - screenRect.top) + (yesRect.height / 2) - (btnNoWrapper.offsetHeight / 2);
+        btnNoWrapper.style.left = left + 'px';
+        btnNoWrapper.style.top = top + 'px';
+        btnNoBaseRect = btnNoWrapper.getBoundingClientRect();
+        positioned = true;
+    }
+    // Position immediately for layout, then recapture after animations settle
+    positionNoWrapper();
+    setTimeout(positionNoWrapper, 2000);
+
+    // Generate a random offset that doesn't overlap the YES button
+    function safeRandomOffset() {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const padding = 16; // keep btn away from screen edges
+        const noW = btnNoBaseRect.width;
+        const noH = btnNoBaseRect.height;
+        const yesRect = btnYes.getBoundingClientRect();
+        const margin = 30;
+
+        // Max offsets that keep the button fully inside the viewport
+        const minX = -(btnNoBaseRect.left - padding);
+        const maxX = vw - btnNoBaseRect.right - padding;
+        const minY = -(btnNoBaseRect.top - padding);
+        const maxY = vh - btnNoBaseRect.bottom - padding;
+
+        let x, y, attempts = 0;
+        do {
+            x = minX + Math.random() * (maxX - minX);
+            y = minY + Math.random() * (maxY - minY);
+            // Check overlap with YES button
+            const futureLeft = btnNoBaseRect.left + x;
+            const futureRight = futureLeft + noW;
+            const futureTop = btnNoBaseRect.top + y;
+            const futureBottom = futureTop + noH;
+            const overlaps = !(futureRight < yesRect.left - margin ||
+                               futureLeft > yesRect.right + margin ||
+                               futureBottom < yesRect.top - margin ||
+                               futureTop > yesRect.bottom + margin);
+            if (!overlaps) break;
+            attempts++;
+        } while (attempts < 30);
+        return { x, y };
+    }
+
+    let currentRotation = 0;
+
     const escapeBehaviors = [
         // Jump to random position
-        (btn) => {
-            const parent = buttonsArea.getBoundingClientRect();
-            const vw = window.innerWidth;
-            const vh = window.innerHeight;
-            const x = (Math.random() - 0.5) * Math.min(vw * 0.6, 300);
-            const y = (Math.random() - 0.5) * Math.min(vh * 0.3, 150);
-            btn.style.transform = `translate(${x}px, ${y}px)`;
+        () => {
+            currentRotation = 0;
+            const { x, y } = safeRandomOffset();
+            btnNoWrapper.style.transform = `translate(${x}px, ${y}px)`;
         },
-        // Shrink
-        (btn) => {
-            const scale = Math.max(0.3, 1 - noAttempts * 0.12);
-            const x = (Math.random() - 0.5) * 200;
-            const y = (Math.random() - 0.5) * 100;
-            btn.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+        // Shrink a little and move
+        () => {
+            currentRotation = 0;
+            const scale = Math.max(0.7, 1 - noAttempts * 0.05);
+            const { x, y } = safeRandomOffset();
+            btnNoWrapper.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
         },
         // Spin away
-        (btn) => {
-            const x = (Math.random() - 0.5) * 250;
-            const y = (Math.random() - 0.5) * 120;
-            const rot = (Math.random() > 0.5 ? 1 : -1) * (90 + Math.random() * 180);
-            btn.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
+        () => {
+            const { x, y } = safeRandomOffset();
+            currentRotation = (Math.random() > 0.5 ? 1 : -1) * (90 + Math.random() * 180);
+            btnNoWrapper.style.transform = `translate(${x}px, ${y}px) rotate(${currentRotation}deg)`;
         },
         // Run to other side
-        (btn) => {
-            const dir = Math.random() > 0.5 ? 1 : -1;
-            btn.style.transform = `translateX(${dir * 200}px) translateY(${(Math.random()-0.5)*80}px)`;
-        },
-        // Get tiny and hide
-        (btn) => {
-            btn.style.transform = `scale(0.15) translate(${(Math.random()-0.5)*400}px, ${(Math.random()-0.5)*200}px)`;
-            btn.style.opacity = '0.4';
+        () => {
+            currentRotation = 0;
+            const { x, y } = safeRandomOffset();
+            btnNoWrapper.style.transform = `translate(${x}px, ${y}px)`;
         },
     ];
 
     // Mouse/touch approach detection
+    let counterTimer = null;
     function handleNoInteraction(e) {
         e.preventDefault();
         noAttempts++;
 
-        btnNo.classList.add('escaping');
+        btnNoWrapper.classList.add('escaping');
 
         const behavior = escapeBehaviors[Math.floor(Math.random() * escapeBehaviors.length)];
-        behavior(btnNo);
+        behavior();
 
         // Change button text sometimes
         if (noAttempts >= 3) {
             const texts = ["No 🏃‍♂️", "¡No! 💨", "Noo 😅", "🙈", "...", "Jaja no"];
             btnNo.textContent = texts[Math.floor(Math.random() * texts.length)];
         }
-        if (noAttempts >= 6) {
-            btnNo.style.opacity = '0.3';
-            btnNo.style.fontSize = '0.8rem';
-        }
 
-        // Show counter message
-        const msg = noMessages[Math.min(noAttempts - 1, noMessages.length - 1)];
-        noCounter.textContent = msg;
+        // Show counter message (loop through messages), counter-rotate so text is always readable
+        // Clear previous timer so rapid taps don't cut the message short
+        if (counterTimer) clearTimeout(counterTimer);
+        noCounter.textContent = noMessages[(noAttempts - 1) % noMessages.length];
+        noCounter.style.transform = `translateX(-50%) rotate(${-currentRotation}deg)`;
         noCounter.classList.add('visible');
-        setTimeout(() => noCounter.classList.remove('visible'), 2000);
+        counterTimer = setTimeout(() => noCounter.classList.remove('visible'), 4000);
 
-        // Make YES button grow slightly with each attempt
-        const yesScale = 1 + noAttempts * 0.03;
-        btnYes.style.transform = `scale(${Math.min(yesScale, 1.25)})`;
 
-        // After many attempts, the No button disappears
-        if (noAttempts >= 10) {
-            btnNo.style.transition = 'all 1s ease';
-            btnNo.style.transform = 'translateY(300px) scale(0) rotate(720deg)';
-            btnNo.style.opacity = '0';
-            noCounter.textContent = "El botón se ha ido para siempre 😂💕";
-            noCounter.classList.add('visible');
-        }
+        // Always reset opacity to full so button never disappears
+        btnNoWrapper.style.opacity = '1';
     }
 
     btnNo.addEventListener('mouseenter', handleNoInteraction);
