@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Para Ti ❤️</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=DM+Sans:wght@300;400;500;600&family=Caveat:wght@400;500;600;700&display=swap');
+
+        :root {
+            --rose: #B5465A;
+            --rose-soft: #D4848F;
+            --rose-pale: #F2D4D7;
+            --gold: #C9A96E;
+            --gold-light: #E8D5B0;
+            --cream: #FFF9F5;
+            --deep: #1E1118;
+            --wine: #5C1A2A;
+            --blush: #FAEAED;
+            --sage: #8FA88B;
+            --terracotta: #C27B5C;
+            --sky: #7BA7BC;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--cream);
+            color: var(--deep);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* ═══════════════════════════════════════
+           SCREEN 1: THE QUESTION
+           ═══════════════════════════════════════ */
+
+        #question-screen {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: radial-gradient(ellipse at 30% 20%, rgba(181,70,90,0.06) 0%, transparent 50%),
+            radial-gradient(ellipse at 70% 80%, rgba(201,169,110,0.08) 0%, transparent 50%),
+            var(--cream);
+            padding: 40px 24px;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        #question-screen.fade-out {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+
+        /* Floating hearts background */
+        .bg-heart {
+            position: absolute;
+            font-size: 1.2rem;
+            opacity: 0.08;
+            animation: floatHeart linear infinite;
+            pointer-events: none;
+            user-select: none;
+        }
+        @keyframes floatHeart {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.08; }
+            90% { opacity: 0.08; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        .envelope-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: gentleBounce 3s ease-in-out infinite;
+            filter: drop-shadow(0 4px 12px rgba(181,70,90,0.15));
+        }
+        @keyframes gentleBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .question-label {
+            font-family: 'Caveat', cursive;
+            font-size: 1.2rem;
+            color: var(--rose-soft);
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            opacity: 0;
+            animation: fadeUp 0.8s ease 0.3s forwards;
+        }
+
+        .question-text {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            font-weight: 500;
+            color: var(--deep);
+            text-align: center;
+            max-width: 600px;
+            line-height: 1.35;
+            margin-bottom: 50px;
+            opacity: 0;
+            animation: fadeUp 0.8s ease 0.6s forwards;
+        }
+        .question-text em {
+            font-style: italic;
+            color: var(--rose);
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* BUTTONS AREA */
+        .buttons-area {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            min-height: 80px;
+            min-width: 340px;
+            opacity: 0;
+            animation: fadeUp 0.8s ease 1s forwards;
+        }
+
+        .btn-yes {
+            padding: 16px 48px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, var(--rose) 0%, var(--wine) 100%);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(181,70,90,0.3);
+            position: relative;
+            z-index: 2;
+            letter-spacing: 0.5px;
+        }
+        .btn-yes:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 30px rgba(181,70,90,0.45);
+        }
+
+        .btn-no {
+            padding: 16px 40px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #aaa;
+            background: transparent;
+            border: 2px solid #ddd;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            z-index: 2;
+            user-select: none;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-no.escaping {
+            transition: all 0.15s ease;
+        }
+
+        /* Counter text */
+        .no-counter {
+            position: absolute;
+            bottom: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Caveat', cursive;
+            font-size: 1rem;
+            color: var(--rose-soft);
+            opacity: 0;
+            transition: opacity 0.3s;
+            white-space: nowrap;
+        }
+        .no-counter.visible { opacity: 1; }
+
+        /* ═══════════════════════════════════════
+           CELEBRATION OVERLAY
+           ═══════════════════════════════════════ */
+
+        #celebration {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(30,17,24,0.7);
+            backdrop-filter: blur(8px);
+        }
+        #celebration.active {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; } to { opacity: 1; }
+        }
+
+        .celeb-text {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(2rem, 7vw, 4rem);
+            font-weight: 700;
+            color: white;
+            text-align: center;
+            text-shadow: 0 2px 20px rgba(181,70,90,0.5);
+            animation: celebPulse 0.6s ease;
+            line-height: 1.3;
+        }
+        @keyframes celebPulse {
+            0% { transform: scale(0.5); opacity: 0; }
+            60% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Floating hearts for celebration */
+        .heart-particle {
+            position: fixed;
+            font-size: 1.5rem;
+            pointer-events: none;
+            z-index: 101;
+            animation: heartRise 3s ease-out forwards;
+        }
+        @keyframes heartRise {
+            0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+            100% { opacity: 0; transform: translateY(-600px) scale(0.3) rotate(720deg); }
+        }
+
+        /* ═══════════════════════════════════════
+           SCREEN 2: THE REVEAL
+           ═══════════════════════════════════════ */
+
+        #reveal-screen {
+            display: none;
+            min-height: 100vh;
+        }
+        #reveal-screen.active { display: block; }
+
+        /* Hero */
+        .reveal-hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 60px 24px;
+            background: linear-gradient(175deg, var(--deep) 0%, var(--wine) 40%, var(--rose) 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .reveal-hero::before {
+            content: '';
+            position: absolute;
+            width: 600px; height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(201,169,110,0.12) 0%, transparent 70%);
+            top: -100px; right: -100px;
+        }
+        .reveal-hero::after {
+            content: '';
+            position: absolute;
+            width: 400px; height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%);
+            bottom: -50px; left: -50px;
+        }
+
+        .reveal-overline {
+            font-family: 'Caveat', cursive;
+            font-size: 1.3rem;
+            color: var(--gold-light);
+            margin-bottom: 16px;
+            opacity: 0;
+            animation: fadeUp 0.8s ease 0.2s forwards;
+        }
+
+        .reveal-city {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(3.5rem, 12vw, 7rem);
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            line-height: 1;
+            margin-bottom: 16px;
+            opacity: 0;
+            animation: revealCity 1s ease 0.5s forwards;
+            background: linear-gradient(180deg, white 30%, var(--gold-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        @keyframes revealCity {
+            from { opacity: 0; transform: translateY(30px) scale(0.9); letter-spacing: 20px; }
+            to { opacity: 1; transform: translateY(0) scale(1); letter-spacing: 4px; }
+        }
+
+        .reveal-tagline {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem;
+            font-weight: 300;
+            font-style: italic;
+            color: var(--rose-pale);
+            margin-bottom: 32px;
+            opacity: 0;
+            animation: fadeUp 0.8s ease 1.2s forwards;
+        }
+
+        .reveal-dates-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(201,169,110,0.3);
+            border-radius: 40px;
+            padding: 14px 32px;
+            font-size: 1rem;
+            color: var(--gold-light);
+            letter-spacing: 1px;
+            opacity: 0;
+            animation: fadeUp 0.8s ease 1.6s forwards;
+        }
+
+        .scroll-hint {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Caveat', cursive;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.4);
+            animation: fadeUp 0.8s ease 2.2s forwards, bobDown 2s ease-in-out 3s infinite;
+            opacity: 0;
+        }
+        @keyframes bobDown {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(8px); }
+        }
+
+        /* ─── Itinerary Section ─── */
+        .itin-section {
+            padding: 80px 24px;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            font-family: 'Caveat', cursive;
+            font-size: 1.1rem;
+            color: var(--rose-soft);
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .section-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem;
+            font-weight: 600;
+            text-align: center;
+            color: var(--deep);
+            margin-bottom: 48px;
+        }
+
+        /* Day card */
+        .day-card {
+            background: white;
+            border-radius: 20px;
+            padding: 36px 32px;
+            margin-bottom: 28px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.04);
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .day-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .day-card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .day-badge {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+        .day-card:nth-child(1) .day-badge { background: var(--sky); }
+        .day-card:nth-child(2) .day-badge { background: var(--terracotta); }
+        .day-card:nth-child(3) .day-badge { background: var(--rose); }
+        .day-card:nth-child(4) .day-badge { background: var(--sage); }
+
+        .day-card-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--deep);
+        }
+        .day-card-date {
+            font-size: 0.82rem;
+            color: #999;
+            margin-top: 2px;
+        }
+
+        .day-card-bday {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--rose), var(--wine));
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 3px 12px;
+            border-radius: 20px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .activity {
+            display: flex;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f5f0ec;
+        }
+        .activity:last-child { border-bottom: none; }
+
+        .activity-icon {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+            width: 36px;
+            text-align: center;
+            padding-top: 2px;
+        }
+        .activity-content {
+            flex: 1;
+        }
+        .activity-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+            color: var(--deep);
+            margin-bottom: 3px;
+        }
+        .activity-desc {
+            font-size: 0.85rem;
+            color: #777;
+            line-height: 1.5;
+        }
+        .activity-time {
+            font-family: 'Caveat', cursive;
+            font-size: 0.9rem;
+            color: var(--gold);
+        }
+
+        /* Highlight activity */
+        .activity.special {
+            background: var(--blush);
+            margin: 8px -16px;
+            padding: 16px;
+            border-radius: 14px;
+            border-bottom: none;
+        }
+
+        /* ─── Final Love Note ─── */
+        .love-note {
+            text-align: center;
+            padding: 80px 24px 100px;
+            max-width: 550px;
+            margin: 0 auto;
+        }
+        .love-note .heart-big {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            animation: gentleBounce 3s ease-in-out infinite;
+        }
+        .love-note p {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            font-weight: 400;
+            font-style: italic;
+            color: var(--wine);
+            line-height: 1.6;
+        }
+        .love-note .signature {
+            font-family: 'Caveat', cursive;
+            font-size: 1.8rem;
+            color: var(--rose);
+            margin-top: 24px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══ SCREEN 1: THE QUESTION ═══ -->
+<div id="question-screen">
+    <!-- Floating bg hearts -->
+    <div class="envelope-icon">💌</div>
+    <div class="question-label">Tengo algo que preguntarte...</div>
+    <div class="question-text">
+        ¿Te gustaría compartir tu próximo <em>cumpleaños</em> conmigo en un lugar muy especial?
+    </div>
+    <div class="buttons-area" id="buttonsArea">
+        <button class="btn-yes" id="btnYes" onclick="handleYes()">¡Sí, quiero! 💕</button>
+        <button class="btn-no" id="btnNo">No, gracias</button>
+        <div class="no-counter" id="noCounter"></div>
+    </div>
+</div>
+
+<!-- ═══ CELEBRATION OVERLAY ═══ -->
+<div id="celebration">
+    <div class="celeb-text" id="celebText">¡Sabía que dirías que sí! 🥰</div>
+</div>
+
+<!-- ═══ SCREEN 2: THE REVEAL ═══ -->
+<div id="reveal-screen">
+    <div class="reveal-hero">
+        <div class="reveal-overline">Tu regalo de cumpleaños es...</div>
+        <div class="reveal-city">Sevilla</div>
+        <div class="reveal-tagline">3 días de amor, tapas y atardeceres</div>
+        <div class="reveal-dates-badge">
+            ✈️ &nbsp; Domingo 1 → Miércoles 4 de Marzo 2026 &nbsp; 🌞
+        </div>
+        <div class="scroll-hint">↓ Desliza para descubrir el plan ↓</div>
+    </div>
+
+    <div class="itin-section">
+        <div class="section-label">Nuestro plan juntos</div>
+        <div class="section-title">4 días de escapada perfecta</div>
+
+        <!-- DAY 1 -->
+        <div class="day-card">
+            <div class="day-card-header">
+                <div class="day-badge">D1</div>
+                <div>
+                    <div class="day-card-title">Llegada a Sevilla</div>
+                    <div class="day-card-date">Domingo 1 de marzo</div>
+                </div>
+            </div>
+            <div class="activity">
+                <div class="activity-icon">🚄</div>
+                <div class="activity-content">
+                    <div class="activity-name">Tren Madrid → Sevilla</div>
+                    <div class="activity-desc">Salimos prontito (7:30 am) y en 2 horas y media estaremos en el sur</div>
+                </div>
+                <div class="activity-time">7:30</div>
+            </div>
+            <div class="activity">
+                <div class="activity-icon">🏨</div>
+                <div class="activity-content">
+                    <div class="activity-name">Hotel boutique en el Barrio Santa Cruz</div>
+                    <div class="activity-desc">Casita andaluza con patio, a dos minutos de la Catedral</div>
+                </div>
+            </div>
+            <div class="activity">
+                <div class="activity-icon">🍷</div>
+                <div class="activity-content">
+                    <div class="activity-name">Tapeo de bienvenida</div>
+                    <div class="activity-desc">Nuestro primer contacto con las tapas sevillanas</div>
+                </div>
+            </div>
+            <div class="activity">
+                <div class="activity-icon">✨</div>
+                <div class="activity-content">
+                    <div class="activity-name">Plaza de España al atardecer</div>
+                    <div class="activity-desc">La plaza más espectacular de España bañada en luz dorada</div>
+                </div>
+            </div>
+            <div class="activity">
+                <div class="activity-icon">🌙</div>
+                <div class="activity-content">
+                    <div class="activity-name">Cena tapeo en calles con encanto</div>
+                    <div class="activity-desc">Callejear y dejarnos llevar por los olores de la cocina andaluza</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DAY 2 -->
+        <div class="day-card">
+            <div class="day-card-header">
+                <div class="day-badge">D2</div>
+                <div>
+                    <div class="day-card-title">Palacios, Catedrales y Triana</div>
+                    <div class="day-card-date">Lunes 2 de marzo</div>
+                </div>
+            </div>
+            <div class="activity special">
+                <div class="activity-icon">🏰</div>
+                <div class="activity-content">
+                    <div class="activity-name">Real Alcázar de Sevilla</div>
+                    <div class="activity-desc">Palacios mudéjares de cuento, jardines infinitos... te va a encantar</div>
+                </div>
+                <div class="activity-time">10:00</div>
+            </div>
+            <div class="activity">
+                <div class="activity-icon">⛪</div>
+                <div class="activity-content">
+                    <div class="activity-name">Catedral + subida a la Giralda</div>
+                    <div class="activity-desc">Toda Sevilla a tus pies desde lo más alto. Sin escaleras, solo rampas 😉</div>
+                </div>
+            </div>
+            <div class="activity">
+                <div class="activity-icon">🌉</div>
+                <div class="activity-content">
+                    <div class="activity-name">Cruzar a Triana por el puente</div>
+                    <div class="activity-desc">El barrio más auténtico, cuna del flamenco, cerámica y buena vida</div>
+                </div>
+            </div>
+            <div class="activity">
+                <div class="activity-icon">🍺</div>
+                <div class="activity-content">
+                    <div class="activity-name">Cena en Triana con vistas al río</div>
+                    <div class="activity-desc">Guadalquivir al atardecer con la Torre del Oro iluminada</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DAY 3 — BIRTHDAY -->
+        <div class="day-card" style="border: 2px solid var(--rose-pale); box-shadow: 0 4px 30px rgba(181,70,90,0.08);">
+            <div class="day-card-header">
+                <div class="day-badge" style="background: var(--rose); box-shadow: 0 0 0 5px var(--rose-pale);">D3</div>
+                <div>
+                    <div class="day-card-title">¡Tu Día! <span class="day-card-bday">🎂 Cumpleaños</span></div>
+                    <div class="day-card-date">Martes 3 de marzo</div>
+                </div>
+            </div>
+            <div class="activity">
+                <div class="activity-icon">☕</div>
+                <div class="activity-content">
+                    <div class="activity-name">Desayuno especial de cumpleañera</div>
+                    <div class="activity-desc">Empezar el día mimándote como te mereces</div>
+                </div>
+            </div>
+            <div class="activity special">
+                <div class="activity-icon">🧖‍♀️</div>
+                <div class="activity-content">
+                    <div class="activity-name">Baños árabes en pareja</div>
+                    <div class="activity-desc">Piscinas termales, velas, aromas... en un palacio del siglo XVI. Solo nosotros dos</div>
+                </div>
+                <div class="activity-time">11:00</div>
+            </div>
+            <div class="activity">
+                <div class="activity-icon">🛍️</div>
+                <div class="activity-content">
+                    <div class="activity-name">Tarde libre: pasear, helado, shopping</div>
+                    <div class="activity-desc">Calles bonitas, abanicos, cerámica, y vistas 360° desde Las Setas</div>
+                </div>
+            </div>
+            <div class="activity">
+                <div class="activity-icon">🍸</div>
+                <div class="activity-content">
+                    <div class="activity-name">Copa con vistas a la Giralda</div>
+                    <div class="activity-desc">Brindamos por ti en una terraza mágica al atardecer</div>
+                </div>
+            </div>
+            <div class="activity special">
+                <div class="activity-icon">🕯️</div>
+                <div class="activity-content">
+                    <div class="activity-name">Cena romántica de cumpleaños</div>
+                    <div class="activity-desc">Un restaurante precioso, solo para nosotros. El broche perfecto</div>
+                </div>
+                <div class="activity-time">21:00</div>
+            </div>
+        </div>
+
+        <!-- DAY 4 -->
+        <div class="day-card">
+            <div class="day-card-header">
+                <div class="day-badge">D4</div>
+                <div>
+                    <div class="day-card-title">Últimas horas y vuelta</div>
+                    <div class="day-card-date">Miércoles 4 de marzo</div>
+                </div>
+            </div>
+            <div class="activity">
+                <div class="activity-icon">🍫</div>
+                <div class="activity-content">
+                    <div class="activity-name">Churros con chocolate</div>
+                    <div class="activity-desc">En un bar centenario, el desayuno más andaluz posible</div>
+                </div>
+            </div>
+            <div class="activity">
+                <div class="activity-icon">🍄</div>
+                <div class="activity-content">
+                    <div class="activity-name">Las Setas de Sevilla</div>
+                    <div class="activity-desc">Estructura de madera gigante, mirador panorámico, foto obligatoria</div>
+                </div>
+            </div>
+            <div class="activity">
+                <div class="activity-icon">🍽️</div>
+                <div class="activity-content">
+                    <div class="activity-name">Último almuerzo sevillano</div>
+                    <div class="activity-desc">Una última tapa antes de despedirnos (hasta la próxima)</div>
+                </div>
+            </div>
+            <div class="activity">
+                <div class="activity-icon">🚄</div>
+                <div class="activity-content">
+                    <div class="activity-name">Tren de vuelta a Madrid</div>
+                    <div class="activity-desc">Volvemos a casa con el corazón lleno y miles de recuerdos</div>
+                </div>
+                <div class="activity-time">17:00</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOVE NOTE -->
+    <div class="love-note">
+        <div class="heart-big">❤️</div>
+        <p>Porque cada año a tu lado es mejor que el anterior, y quiero que este cumpleaños sea uno que recuerdes siempre.</p>
+        <span class="signature">Te quiero ❤️</span>
+    </div>
+</div>
+
+<script>
+    // ═══ BACKGROUND HEARTS ═══
+    (function createBgHearts() {
+        const screen = document.getElementById('question-screen');
+        const hearts = ['♥', '❤', '♡', '💕'];
+        for (let i = 0; i < 15; i++) {
+            const h = document.createElement('div');
+            h.className = 'bg-heart';
+            h.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+            h.style.left = Math.random() * 100 + '%';
+            h.style.animationDuration = (8 + Math.random() * 12) + 's';
+            h.style.animationDelay = (Math.random() * 10) + 's';
+            h.style.fontSize = (0.8 + Math.random() * 1.2) + 'rem';
+            screen.appendChild(h);
+        }
+    })();
+
+    // ═══ THE IMPOSSIBLE "NO" BUTTON ═══
+    const btnNo = document.getElementById('btnNo');
+    const btnYes = document.getElementById('btnYes');
+    const noCounter = document.getElementById('noCounter');
+    const buttonsArea = document.getElementById('buttonsArea');
+
+    let noAttempts = 0;
+    const noMessages = [
+        "Jajaja, buen intento 😏",
+        "¿Segura? Inténtalo otra vez...",
+        "Ese botón no funciona 😜",
+        "Nope, no va a pasar 😂",
+        "Creo que el otro botón es mejor opción...",
+        "¿Por qué huyes del amor? 💘",
+        "El botón dice que no quiere ser clickeado",
+        "¡Casi! ...no, mentira 😁",
+        "Ríndete, solo hay una opción 💕",
+        "¿Todavía intentándolo? 🤭",
+    ];
+
+    const escapeBehaviors = [
+        // Jump to random position
+        (btn) => {
+            const parent = buttonsArea.getBoundingClientRect();
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const x = (Math.random() - 0.5) * Math.min(vw * 0.6, 300);
+            const y = (Math.random() - 0.5) * Math.min(vh * 0.3, 150);
+            btn.style.transform = `translate(${x}px, ${y}px)`;
+        },
+        // Shrink
+        (btn) => {
+            const scale = Math.max(0.3, 1 - noAttempts * 0.12);
+            const x = (Math.random() - 0.5) * 200;
+            const y = (Math.random() - 0.5) * 100;
+            btn.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+        },
+        // Spin away
+        (btn) => {
+            const x = (Math.random() - 0.5) * 250;
+            const y = (Math.random() - 0.5) * 120;
+            const rot = (Math.random() > 0.5 ? 1 : -1) * (90 + Math.random() * 180);
+            btn.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
+        },
+        // Run to other side
+        (btn) => {
+            const dir = Math.random() > 0.5 ? 1 : -1;
+            btn.style.transform = `translateX(${dir * 200}px) translateY(${(Math.random()-0.5)*80}px)`;
+        },
+        // Get tiny and hide
+        (btn) => {
+            btn.style.transform = `scale(0.15) translate(${(Math.random()-0.5)*400}px, ${(Math.random()-0.5)*200}px)`;
+            btn.style.opacity = '0.4';
+        },
+    ];
+
+    // Mouse/touch approach detection
+    function handleNoInteraction(e) {
+        e.preventDefault();
+        noAttempts++;
+
+        btnNo.classList.add('escaping');
+
+        const behavior = escapeBehaviors[Math.floor(Math.random() * escapeBehaviors.length)];
+        behavior(btnNo);
+
+        // Change button text sometimes
+        if (noAttempts >= 3) {
+            const texts = ["No 🏃‍♂️", "¡No! 💨", "Noo 😅", "🙈", "...", "Jaja no"];
+            btnNo.textContent = texts[Math.floor(Math.random() * texts.length)];
+        }
+        if (noAttempts >= 6) {
+            btnNo.style.opacity = '0.3';
+            btnNo.style.fontSize = '0.8rem';
+        }
+
+        // Show counter message
+        const msg = noMessages[Math.min(noAttempts - 1, noMessages.length - 1)];
+        noCounter.textContent = msg;
+        noCounter.classList.add('visible');
+        setTimeout(() => noCounter.classList.remove('visible'), 2000);
+
+        // Make YES button grow slightly with each attempt
+        const yesScale = 1 + noAttempts * 0.03;
+        btnYes.style.transform = `scale(${Math.min(yesScale, 1.25)})`;
+
+        // After many attempts, the No button disappears
+        if (noAttempts >= 10) {
+            btnNo.style.transition = 'all 1s ease';
+            btnNo.style.transform = 'translateY(300px) scale(0) rotate(720deg)';
+            btnNo.style.opacity = '0';
+            noCounter.textContent = "El botón se ha ido para siempre 😂💕";
+            noCounter.classList.add('visible');
+        }
+    }
+
+    btnNo.addEventListener('mouseenter', handleNoInteraction);
+    btnNo.addEventListener('touchstart', handleNoInteraction, { passive: false });
+    btnNo.addEventListener('click', handleNoInteraction);
+
+    // ═══ YES HANDLER ═══
+    function handleYes() {
+        // Spawn heart particles
+        spawnHearts(40);
+
+        // Show celebration
+        const celebration = document.getElementById('celebration');
+        celebration.classList.add('active');
+
+        // Sequence
+        setTimeout(() => {
+            document.getElementById('celebText').innerHTML = 'Prepara la maleta... 🧳✨';
+        }, 2000);
+
+        setTimeout(() => {
+            celebration.classList.remove('active');
+            document.getElementById('question-screen').classList.add('fade-out');
+        }, 3800);
+
+        setTimeout(() => {
+            document.getElementById('question-screen').style.display = 'none';
+            document.getElementById('reveal-screen').classList.add('active');
+            // Trigger scroll animations
+            initScrollObserver();
+        }, 4600);
+    }
+
+    function spawnHearts(count) {
+        const emojis = ['❤️', '💕', '💖', '💗', '✨', '🥰', '💘', '🌹'];
+        for (let i = 0; i < count; i++) {
+            setTimeout(() => {
+                const h = document.createElement('div');
+                h.className = 'heart-particle';
+                h.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                h.style.left = Math.random() * 100 + 'vw';
+                h.style.top = (50 + Math.random() * 50) + 'vh';
+                h.style.fontSize = (1 + Math.random() * 2) + 'rem';
+                h.style.animationDuration = (2 + Math.random() * 2) + 's';
+                document.body.appendChild(h);
+                setTimeout(() => h.remove(), 4000);
+            }, i * 60);
+        }
+    }
+
+    // ═══ SCROLL REVEAL FOR DAY CARDS ═══
+    function initScrollObserver() {
+        const cards = document.querySelectorAll('.day-card');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.15 });
+        cards.forEach(card => observer.observe(card));
+    }
+</script>
+
+</body>
+</html>
