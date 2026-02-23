@@ -920,6 +920,11 @@
 
     // ═══ YES HANDLER ═══
     function handleYes() {
+        // Hide the No button immediately
+        btnNoWrapper.style.transition = 'opacity 0.3s ease';
+        btnNoWrapper.style.opacity = '0';
+        btnNoWrapper.style.pointerEvents = 'none';
+
         // Spawn heart particles
         spawnHearts(40);
 
