@@ -786,6 +786,8 @@
     const btnYes = document.getElementById('btnYes');
     const noCounter = document.getElementById('noCounter');
 
+    let yesClicked = false; // Flag to prevent No button from escaping after Yes is clicked
+
     let noAttempts = 0;
     let currentX = 0, currentY = 0;
     let counterTimer = null;
@@ -841,6 +843,7 @@
 
     // Jump to a random position fully inside the viewport, away from Yes button
     function escapeButton() {
+        if (yesClicked) return; // Don't escape if Yes was already clicked
         noAttempts++;
 
         const btnW = btnNoWrapper.offsetWidth || 130;
@@ -920,10 +923,14 @@
 
     // ═══ YES HANDLER ═══
     function handleYes() {
+        // Set flag to prevent any further No button escapes
+        yesClicked = true;
+
         // Hide the No button immediately
         btnNoWrapper.style.transition = 'opacity 0.3s ease';
         btnNoWrapper.style.opacity = '0';
         btnNoWrapper.style.pointerEvents = 'none';
+        btnNoWrapper.style.visibility = 'hidden'; // Extra layer to ensure it's gone
 
         // Spawn heart particles
         spawnHearts(40);
